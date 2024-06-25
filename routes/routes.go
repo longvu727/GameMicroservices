@@ -42,7 +42,7 @@ func createGame(writer http.ResponseWriter, request *http.Request, dbConnect *db
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		createSquareResponse.GameGUID = ""
-		createSquareResponse.ErrorMessage = `Unable to create square`
+		createSquareResponse.ErrorMessage = `Unable to create game`
 		writer.Write(createSquareResponse.ToJson())
 		return
 	}
@@ -54,18 +54,17 @@ func createGame(writer http.ResponseWriter, request *http.Request, dbConnect *db
 func getGame(writer http.ResponseWriter, request *http.Request, dbConnect *db.MySQL, ctx context.Context) {
 	log.Printf("Received request for %s\n", request.URL.Path)
 
-	/*writer.Header().Set("Content-Type", "application/json")
+	writer.Header().Set("Content-Type", "application/json")
 
-	getSquareResponse, err := app.GetSquare(ctx, request, dbConnect)
+	getGameResponse, err := app.GetDBGame(ctx, request, dbConnect)
 
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
-		getSquareResponse.GameGUID = ""
-		getSquareResponse.ErrorMessage = `Unable to get square`
-		writer.Write(getSquareResponse.ToJson())
+		getGameResponse.ErrorMessage = `Unable to get game`
+		writer.Write(getGameResponse.ToJson())
 		return
 	}
 
 	writer.WriteHeader(http.StatusOK)
-	writer.Write(getSquareResponse.ToJson())*/
+	writer.Write(getGameResponse.ToJson())
 }
