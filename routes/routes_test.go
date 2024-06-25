@@ -30,7 +30,7 @@ func (suite *RoutesTestSuite) TestCreateSquare() {
 	rr := httptest.NewRecorder()
 
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		createSquare(w, r, nil, ctx)
+		createGame(w, r, nil, ctx)
 	})
 	handler.ServeHTTP(rr, req)
 	if status := rr.Code; status != http.StatusOK {
