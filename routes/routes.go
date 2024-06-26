@@ -10,25 +10,26 @@ import (
 	"github.com/longvu727/FootballSquaresLibs/DB/db"
 )
 
-type Handler = func(writer http.ResponseWriter, request *http.Request)
+type Handler = func(writer http.ResponseWriter, request *http.Request, dbConnect *db.MySQL, ctx context.Context)
 
 func Register(db *db.MySQL, ctx context.Context) {
 	log.Println("Registering routes")
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		home(w, r)
-	})
+	routes := map[string]Handler{
+		"/":              home,
+		"/CreateGame":    createGame,
+		"/GetGame":       getGame,
+		"/GetGameByGUID": getGameByGUID,
+	}
 
-	http.HandleFunc(http.MethodPost+" /CreateGame", func(w http.ResponseWriter, r *http.Request) {
-		createGame(w, r, db, ctx)
-	})
-
-	http.HandleFunc(http.MethodPost+" /GetGame", func(w http.ResponseWriter, r *http.Request) {
-		getGame(w, r, db, ctx)
-	})
+	for route, handler := range routes {
+		http.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {
+			handler(w, r, db, ctx)
+		})
+	}
 }
 
-func home(writer http.ResponseWriter, _ *http.Request) {
+func home(writer http.ResponseWriter, request *http.Request, dbConnect *db.MySQL, ctx context.Context) {
 	fmt.Fprintf(writer, "{\"Acknowledged\": true}")
 }
 
@@ -57,6 +58,24 @@ func getGame(writer http.ResponseWriter, request *http.Request, dbConnect *db.My
 	writer.Header().Set("Content-Type", "application/json")
 
 	getGameResponse, err := app.GetDBGame(ctx, request, dbConnect)
+
+	if err != nil {
+		writer.WriteHeader(http.StatusInternalServerError)
+		getGameResponse.ErrorMessage = `Unable to get game`
+		writer.Write(getGameResponse.ToJson())
+		return
+	}
+
+	writer.WriteHeader(http.StatusOK)
+	writer.Write(getGameResponse.ToJson())
+}
+
+func getGameByGUID(writer http.ResponseWriter, request *http.Request, dbConnect *db.MySQL, ctx context.Context) {
+	log.Printf("Received request for %s\n", request.URL.Path)
+
+	writer.Header().Set("Content-Type", "application/json")
+
+	getGameResponse, err := app.GetGameByGUID(ctx, request, dbConnect)
 
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
