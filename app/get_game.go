@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/longvu727/FootballSquaresLibs/DB/db"
+	gamemicroservices "github.com/longvu727/FootballSquaresLibs/services/game_microservices"
 )
 
 type GetGameParams struct {
@@ -17,12 +18,7 @@ type GetGameByGUIDParams struct {
 }
 
 type GetGameResponse struct {
-	GameID   int32  `json:"game_id"`
-	GameGuid string `json:"game_guid"`
-	Sport    string `json:"sport"`
-	TeamA    string `json:"team_a"`
-	TeamB    string `json:"team_b"`
-
+	gamemicroservices.Game
 	ErrorMessage string `json:"error_message"`
 }
 
@@ -41,8 +37,8 @@ func GetDBGame(ctx context.Context, request *http.Request, dbConnect *db.MySQL) 
 		return &getGameResponse, err
 	}
 
-	getGameResponse.GameID = gameRow.GameID
-	getGameResponse.GameGuid = gameRow.GameGuid
+	getGameResponse.GameID = int64(gameRow.GameID)
+	getGameResponse.GameGUID = gameRow.GameGuid
 	getGameResponse.Sport = gameRow.Sport.String
 	getGameResponse.TeamA = gameRow.TeamA.String
 	getGameResponse.TeamB = gameRow.TeamB.String
@@ -60,8 +56,8 @@ func GetGameByGUID(ctx context.Context, request *http.Request, dbConnect *db.MyS
 		return &getGameResponse, err
 	}
 
-	getGameResponse.GameID = gameRow.GameID
-	getGameResponse.GameGuid = gameRow.GameGuid
+	getGameResponse.GameID = int64(gameRow.GameID)
+	getGameResponse.GameGUID = gameRow.GameGuid
 	getGameResponse.Sport = gameRow.Sport.String
 	getGameResponse.TeamA = gameRow.TeamA.String
 	getGameResponse.TeamB = gameRow.TeamB.String
