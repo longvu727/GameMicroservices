@@ -4,7 +4,7 @@ go 1.22.2
 
 require (
 	github.com/google/uuid v1.6.0
-	github.com/longvu727/FootballSquaresLibs v0.0.0-20240627181522-762ee2ced757
+	github.com/longvu727/FootballSquaresLibs v0.0.0-20240627200715-df9dedadf9ea
 	github.com/stretchr/testify v1.9.0
 )
 
