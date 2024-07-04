@@ -1,12 +1,10 @@
 package app
 
 import (
-	"context"
 	"encoding/json"
-	"net/http"
 
-	"github.com/longvu727/FootballSquaresLibs/DB/db"
 	gamemicroservices "github.com/longvu727/FootballSquaresLibs/services/game_microservices"
+	"github.com/longvu727/FootballSquaresLibs/util/resources"
 )
 
 type GetGameParams struct {
@@ -27,12 +25,10 @@ func (response GetGameResponse) ToJson() []byte {
 	return jsonStr
 }
 
-func GetDBGame(ctx context.Context, request *http.Request, dbConnect *db.MySQL) (*GetGameResponse, error) {
+func (game *GameApp) GetDBGame(getGameParams GetGameParams, resources *resources.Resources) (*GetGameResponse, error) {
 	var getGameResponse GetGameResponse
-	var getGameParams GetGameParams
-	json.NewDecoder(request.Body).Decode(&getGameParams)
 
-	gameRow, err := dbConnect.QUERIES.GetGame(ctx, getGameParams.GameID)
+	gameRow, err := resources.DB.GetGame(resources.Context, getGameParams.GameID)
 	if err != nil {
 		return &getGameResponse, err
 	}
@@ -46,12 +42,10 @@ func GetDBGame(ctx context.Context, request *http.Request, dbConnect *db.MySQL) 
 	return &getGameResponse, nil
 }
 
-func GetGameByGUID(ctx context.Context, request *http.Request, dbConnect *db.MySQL) (*GetGameResponse, error) {
+func (game *GameApp) GetGameByGUID(getGameByGUIDParams GetGameByGUIDParams, resources *resources.Resources) (*GetGameResponse, error) {
 	var getGameResponse GetGameResponse
-	var getGameByGUIDParams GetGameByGUIDParams
-	json.NewDecoder(request.Body).Decode(&getGameByGUIDParams)
 
-	gameRow, err := dbConnect.QUERIES.GetGameByGUID(ctx, getGameByGUIDParams.GameGUID)
+	gameRow, err := resources.DB.GetGameByGUID(resources.Context, getGameByGUIDParams.GameGUID)
 	if err != nil {
 		return &getGameResponse, err
 	}

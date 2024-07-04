@@ -1,18 +1,16 @@
 package app
 
 import (
-	"context"
 	"database/sql"
 	"encoding/json"
-	"net/http"
 
 	"github.com/google/uuid"
 	"github.com/longvu727/FootballSquaresLibs/DB/db"
+	"github.com/longvu727/FootballSquaresLibs/util/resources"
 )
 
 type CreateGameParams struct {
 	Sport      string `json:"sport"`
-	SquareSize int32  `json:"square_size"`
 	TeamA      string `json:"team_a"`
 	TeamB      string `json:"team_b"`
 }
@@ -27,15 +25,18 @@ func (response CreateGameResponse) ToJson() []byte {
 	return jsonStr
 }
 
-func CreateDBGame(ctx context.Context, request *http.Request, dbConnect *db.MySQL) (*CreateGameResponse, error) {
-	var createSquareParams CreateGameParams
-	json.NewDecoder(request.Body).Decode(&createSquareParams)
-
+func (game *GameApp) CreateDBGame(createGameParams CreateGameParams, resources *resources.Resources) (*CreateGameResponse, error) {
 	var createGameResponse CreateGameResponse
 
 	gameGuid := (uuid.New()).String()
 
-	gameID, err := insertGame(ctx, dbConnect, gameGuid, createSquareParams.TeamA, createSquareParams.TeamB)
+	gameID, err := resources.DB.CreateGame(resources.Context, db.CreateGameParams{
+		GameGuid: gameGuid,
+		Sport:    sql.NullString{String: "football", Valid: true},
+		TeamA:    sql.NullString{String: createGameParams.TeamA, Valid: true},
+		TeamB:    sql.NullString{String: createGameParams.TeamB, Valid: true},
+	})
+
 	if err != nil {
 		return &createGameResponse, err
 	}
@@ -44,23 +45,4 @@ func CreateDBGame(ctx context.Context, request *http.Request, dbConnect *db.MySQ
 	createGameResponse.GameID = gameID
 
 	return &createGameResponse, err
-}
-
-func insertGame(ctx context.Context, dbConnect *db.MySQL, gameGuid string, teamA string, teamB string) (int64, error) {
-
-	createGameResult, err := dbConnect.QUERIES.CreateGames(ctx, db.CreateGamesParams{
-		GameGuid: gameGuid,
-		Sport:    sql.NullString{String: "football", Valid: true},
-		TeamA:    sql.NullString{String: teamA, Valid: true},
-		TeamB:    sql.NullString{String: teamB, Valid: true},
-	})
-	if err != nil {
-		return 0, err
-	}
-
-	gameID, err := createGameResult.LastInsertId()
-	if err != nil {
-		return 0, err
-	}
-	return gameID, nil
 }

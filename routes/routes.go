@@ -1,44 +1,63 @@
 package routes
 
 import (
-	"context"
+	"encoding/json"
 	"fmt"
+	"gamemicroservices/app"
 	"log"
 	"net/http"
-	"squaremicroservices/app"
 
-	"github.com/longvu727/FootballSquaresLibs/DB/db"
+	"github.com/longvu727/FootballSquaresLibs/util/resources"
 )
 
-type Handler = func(writer http.ResponseWriter, request *http.Request, dbConnect *db.MySQL, ctx context.Context)
-
-func Register(db *db.MySQL, ctx context.Context) {
-	log.Println("Registering routes")
-
-	routes := map[string]Handler{
-		"/":              home,
-		"/CreateGame":    createGame,
-		"/GetGame":       getGame,
-		"/GetGameByGUID": getGameByGUID,
-	}
-
-	for route, handler := range routes {
-		http.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {
-			handler(w, r, db, ctx)
-		})
-	}
+type RoutesInterface interface {
+	Register(resources *resources.Resources) *http.ServeMux
 }
 
-func home(writer http.ResponseWriter, request *http.Request, dbConnect *db.MySQL, ctx context.Context) {
+type Routes struct {
+	Apps app.Game
+}
+
+type Handler = func(writer http.ResponseWriter, request *http.Request, resources *resources.Resources)
+
+func NewRoutes() RoutesInterface {
+	return &Routes{
+		Apps: app.NewGameApp(),
+	}
+}
+func (routes *Routes) Register(resources *resources.Resources) *http.ServeMux {
+	log.Println("Registering routes")
+	mux := http.NewServeMux()
+
+	routesHandlersMap := map[string]Handler{
+		"/":              routes.home,
+		"/CreateGame":    routes.createGame,
+		"/GetGame":       routes.getGame,
+		"/GetGameByGUID": routes.getGameByGUID,
+	}
+
+	for route, handler := range routesHandlersMap {
+		mux.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {
+			handler(w, r, resources)
+		})
+	}
+
+	return mux
+}
+
+func (routes *Routes) home(writer http.ResponseWriter, request *http.Request, resources *resources.Resources) {
 	fmt.Fprintf(writer, "{\"Acknowledged\": true}")
 }
 
-func createGame(writer http.ResponseWriter, request *http.Request, dbConnect *db.MySQL, ctx context.Context) {
+func (routes *Routes) createGame(writer http.ResponseWriter, request *http.Request, resources *resources.Resources) {
 	log.Printf("Received request for %s\n", request.URL.Path)
 
 	writer.Header().Set("Content-Type", "application/json")
 
-	createSquareResponse, err := app.CreateDBGame(ctx, request, dbConnect)
+	var createGameParams app.CreateGameParams
+	json.NewDecoder(request.Body).Decode(&createGameParams)
+
+	createSquareResponse, err := routes.Apps.CreateDBGame(createGameParams, resources)
 
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
@@ -52,12 +71,15 @@ func createGame(writer http.ResponseWriter, request *http.Request, dbConnect *db
 	writer.Write(createSquareResponse.ToJson())
 }
 
-func getGame(writer http.ResponseWriter, request *http.Request, dbConnect *db.MySQL, ctx context.Context) {
+func (routes *Routes) getGame(writer http.ResponseWriter, request *http.Request, resources *resources.Resources) {
 	log.Printf("Received request for %s\n", request.URL.Path)
 
 	writer.Header().Set("Content-Type", "application/json")
 
-	getGameResponse, err := app.GetDBGame(ctx, request, dbConnect)
+	var getGameParams app.GetGameParams
+	json.NewDecoder(request.Body).Decode(&getGameParams)
+
+	getGameResponse, err := routes.Apps.GetDBGame(getGameParams, resources)
 
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
@@ -70,12 +92,15 @@ func getGame(writer http.ResponseWriter, request *http.Request, dbConnect *db.My
 	writer.Write(getGameResponse.ToJson())
 }
 
-func getGameByGUID(writer http.ResponseWriter, request *http.Request, dbConnect *db.MySQL, ctx context.Context) {
+func (routes *Routes) getGameByGUID(writer http.ResponseWriter, request *http.Request, resources *resources.Resources) {
 	log.Printf("Received request for %s\n", request.URL.Path)
 
 	writer.Header().Set("Content-Type", "application/json")
 
-	getGameResponse, err := app.GetGameByGUID(ctx, request, dbConnect)
+	var getGameByGUIDParams app.GetGameByGUIDParams
+	json.NewDecoder(request.Body).Decode(&getGameByGUIDParams)
+
+	getGameResponse, err := routes.Apps.GetGameByGUID(getGameByGUIDParams, resources)
 
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
