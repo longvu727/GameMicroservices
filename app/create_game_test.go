@@ -41,10 +41,10 @@ func (suite *CreateGameTestSuite) TestCreateGame() {
 		TeamA: randomGame.TeamA.String,
 		TeamB: randomGame.TeamB.String,
 	}
-	square, err := NewGameApp().CreateDBGame(createSquareParams, resources)
+	game, err := NewGameApp().CreateDBGame(createSquareParams, resources)
 	suite.NoError(err)
 
-	suite.Equal(randomGame.GameID, int32(square.GameID))
+	suite.Equal(randomGame.GameID, int32(game.GameID))
 }
 
 func TestCreateGameTestSuite(t *testing.T) {

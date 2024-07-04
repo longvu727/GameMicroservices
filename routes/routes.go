@@ -30,10 +30,10 @@ func (routes *Routes) Register(resources *resources.Resources) *http.ServeMux {
 	mux := http.NewServeMux()
 
 	routesHandlersMap := map[string]Handler{
-		"/":              routes.home,
-		"/CreateGame":    routes.createGame,
-		"/GetGame":       routes.getGame,
-		"/GetGameByGUID": routes.getGameByGUID,
+		"/":                                 routes.home,
+		http.MethodPost + " /CreateGame":    routes.createGame,
+		http.MethodPost + " /GetGame":       routes.getGame,
+		http.MethodPost + " /GetGameByGUID": routes.getGameByGUID,
 	}
 
 	for route, handler := range routesHandlersMap {
