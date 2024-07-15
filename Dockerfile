@@ -44,6 +44,4 @@ USER ${USER}:${USER}
 HEALTHCHECK --interval=30s --timeout=30s \
     CMD wget -nv -t1 --spider 'http://localhost:3001' || exit 1
 
-EXPOSE 3001
-
 CMD ["./api"]
