@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -15,7 +16,8 @@ type CreateGameTestSuite struct {
 	suite.Suite
 }
 
-func (suite *CreateGameTestSuite) SetupTest() {
+func TestCreateGameTestSuite(t *testing.T) {
+	suite.Run(t, new(CreateGameTestSuite))
 }
 
 func (suite *CreateGameTestSuite) TestCreateGame() {
@@ -45,8 +47,26 @@ func (suite *CreateGameTestSuite) TestCreateGame() {
 	suite.NoError(err)
 
 	suite.Equal(randomGame.GameID, int32(game.GameID))
+	suite.Greater(len(game.ToJson()), 0)
 }
 
-func TestCreateGameTestSuite(t *testing.T) {
-	suite.Run(t, new(CreateGameTestSuite))
+func (suite *CreateGameTestSuite) TestCreateGameDBError() {
+
+	ctrl := gomock.NewController(suite.T())
+	defer ctrl.Finish()
+
+	mockMySQL := mockdb.NewMockMySQL(ctrl)
+
+	mockMySQL.EXPECT().
+		CreateGame(gomock.Any(), gomock.Any()).
+		Times(1).
+		Return(int64(0), errors.New("test error"))
+
+	config, err := util.LoadConfig("../env", "app", "env")
+	suite.NoError(err)
+
+	resources := resources.NewResources(config, mockMySQL, context.Background())
+
+	_, err = NewGameApp().CreateDBGame(CreateGameParams{}, resources)
+	suite.Error(err)
 }

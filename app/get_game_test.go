@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"math/rand"
 	"testing"
 
@@ -19,7 +20,12 @@ type GetGameTestSuite struct {
 	suite.Suite
 }
 
-func (suite *GetGameTestSuite) SetupTest() {
+func TestGetGameTestSuite(t *testing.T) {
+	suite.Run(t, new(GetGameTestSuite))
+}
+
+func (suite *GetGameTestSuite) getTestError() error {
+	return errors.New("test error")
 }
 
 func (suite *GetGameTestSuite) TestGetGame() {
@@ -49,6 +55,28 @@ func (suite *GetGameTestSuite) TestGetGame() {
 	suite.Equal(randomGame.Sport.String, game.Sport)
 	suite.Equal(randomGame.TeamA.String, game.TeamA)
 	suite.Equal(randomGame.TeamB.String, game.TeamB)
+
+	suite.Greater(len(game.ToJson()), 0)
+}
+
+func (suite *GetGameTestSuite) TestGetGameDBError() {
+	ctrl := gomock.NewController(suite.T())
+	defer ctrl.Finish()
+
+	mockMySQL := mockdb.NewMockMySQL(ctrl)
+
+	mockMySQL.EXPECT().
+		GetGame(gomock.Any(), gomock.Any()).
+		Times(1).
+		Return(db.GetGameRow{}, suite.getTestError())
+
+	config, err := util.LoadConfig("../env", "app", "env")
+	suite.NoError(err)
+
+	resources := resources.NewResources(config, mockMySQL, context.Background())
+
+	_, err = NewGameApp().GetDBGame(GetGameParams{}, resources)
+	suite.Error(err)
 }
 
 func (suite *GetGameTestSuite) TestGetGameByGUID() {
@@ -78,6 +106,28 @@ func (suite *GetGameTestSuite) TestGetGameByGUID() {
 	suite.Equal(randomGame.Sport.String, game.Sport)
 	suite.Equal(randomGame.TeamA.String, game.TeamA)
 	suite.Equal(randomGame.TeamB.String, game.TeamB)
+
+	suite.Greater(len(game.ToJson()), 0)
+}
+
+func (suite *GetGameTestSuite) TestGetGameByGUIDDBError() {
+	ctrl := gomock.NewController(suite.T())
+	defer ctrl.Finish()
+
+	mockMySQL := mockdb.NewMockMySQL(ctrl)
+
+	mockMySQL.EXPECT().
+		GetGameByGUID(gomock.Any(), gomock.Any()).
+		Times(1).
+		Return(db.GetGameByGUIDRow{}, suite.getTestError())
+
+	config, err := util.LoadConfig("../env", "app", "env")
+	suite.NoError(err)
+
+	resources := resources.NewResources(config, mockMySQL, context.Background())
+
+	_, err = NewGameApp().GetGameByGUID(GetGameByGUIDParams{}, resources)
+	suite.Error(err)
 }
 
 func randomGame() db.GetGameRow {
@@ -98,8 +148,4 @@ func randomGameByGUID() db.GetGameByGUIDRow {
 		TeamA:    sql.NullString{String: "TeamA", Valid: true},
 		TeamB:    sql.NullString{String: "TeamB", Valid: true},
 	}
-}
-
-func TestGetGameTestSuite(t *testing.T) {
-	suite.Run(t, new(GetGameTestSuite))
 }
