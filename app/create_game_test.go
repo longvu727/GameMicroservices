@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	mockdb "github.com/longvu727/FootballSquaresLibs/DB/db/mock"
+	"github.com/longvu727/FootballSquaresLibs/services"
 	"github.com/longvu727/FootballSquaresLibs/util"
 	"github.com/longvu727/FootballSquaresLibs/util/resources"
 	"github.com/stretchr/testify/suite"
@@ -36,7 +37,7 @@ func (suite *CreateGameTestSuite) TestCreateGame() {
 	config, err := util.LoadConfig("../env", "app", "env")
 	suite.NoError(err)
 
-	resources := resources.NewResources(config, mockMySQL, context.Background())
+	resources := resources.NewResources(config, mockMySQL, services.NewServices(), context.Background())
 
 	createSquareParams := CreateGameParams{
 		Sport: randomGame.Sport.String,
@@ -65,7 +66,7 @@ func (suite *CreateGameTestSuite) TestCreateGameDBError() {
 	config, err := util.LoadConfig("../env", "app", "env")
 	suite.NoError(err)
 
-	resources := resources.NewResources(config, mockMySQL, context.Background())
+	resources := resources.NewResources(config, mockMySQL, services.NewServices(), context.Background())
 
 	_, err = NewGameApp().CreateDBGame(CreateGameParams{}, resources)
 	suite.Error(err)

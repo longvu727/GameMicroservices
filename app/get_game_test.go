@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	db "github.com/longvu727/FootballSquaresLibs/DB/db"
 	mockdb "github.com/longvu727/FootballSquaresLibs/DB/db/mock"
+	"github.com/longvu727/FootballSquaresLibs/services"
 	"github.com/longvu727/FootballSquaresLibs/util"
 	"github.com/longvu727/FootballSquaresLibs/util/resources"
 	"github.com/stretchr/testify/suite"
@@ -44,7 +45,7 @@ func (suite *GetGameTestSuite) TestGetGame() {
 	config, err := util.LoadConfig("../env", "app", "env")
 	suite.NoError(err)
 
-	resources := resources.NewResources(config, mockMySQL, context.Background())
+	resources := resources.NewResources(config, mockMySQL, services.NewServices(), context.Background())
 
 	getGameParams := GetGameParams{GameID: randomGame.GameID}
 	game, err := NewGameApp().GetDBGame(getGameParams, resources)
@@ -73,7 +74,7 @@ func (suite *GetGameTestSuite) TestGetGameDBError() {
 	config, err := util.LoadConfig("../env", "app", "env")
 	suite.NoError(err)
 
-	resources := resources.NewResources(config, mockMySQL, context.Background())
+	resources := resources.NewResources(config, mockMySQL, services.NewServices(), context.Background())
 
 	_, err = NewGameApp().GetDBGame(GetGameParams{}, resources)
 	suite.Error(err)
@@ -95,7 +96,7 @@ func (suite *GetGameTestSuite) TestGetGameByGUID() {
 	config, err := util.LoadConfig("../env", "app", "env")
 	suite.NoError(err)
 
-	resources := resources.NewResources(config, mockMySQL, context.Background())
+	resources := resources.NewResources(config, mockMySQL, services.NewServices(), context.Background())
 
 	getGameParams := GetGameByGUIDParams{GameGUID: randomGame.GameGuid}
 	game, err := NewGameApp().GetGameByGUID(getGameParams, resources)
@@ -124,7 +125,7 @@ func (suite *GetGameTestSuite) TestGetGameByGUIDDBError() {
 	config, err := util.LoadConfig("../env", "app", "env")
 	suite.NoError(err)
 
-	resources := resources.NewResources(config, mockMySQL, context.Background())
+	resources := resources.NewResources(config, mockMySQL, services.NewServices(), context.Background())
 
 	_, err = NewGameApp().GetGameByGUID(GetGameByGUIDParams{}, resources)
 	suite.Error(err)

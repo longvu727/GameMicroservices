@@ -3,7 +3,7 @@ package app
 import (
 	"encoding/json"
 
-	gamemicroservices "github.com/longvu727/FootballSquaresLibs/services/game_microservices"
+	"github.com/longvu727/FootballSquaresLibs/services"
 	"github.com/longvu727/FootballSquaresLibs/util/resources"
 )
 
@@ -16,7 +16,7 @@ type GetGameByGUIDParams struct {
 }
 
 type GetGameResponse struct {
-	gamemicroservices.Game
+	services.Game
 	ErrorMessage string `json:"error_message"`
 }
 
