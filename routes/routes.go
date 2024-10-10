@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"gamemicroservices/app"
@@ -62,7 +63,7 @@ func (routes *Routes) createGame(writer http.ResponseWriter, request *http.Reque
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		createSquareResponse.GameGUID = ""
-		createSquareResponse.ErrorMessage = `Unable to create game`
+		createSquareResponse.ErrorMessage = `Unable to create game` + err.Error()
 		writer.Write(createSquareResponse.ToJson())
 		return
 	}
@@ -81,9 +82,11 @@ func (routes *Routes) getGame(writer http.ResponseWriter, request *http.Request,
 
 	getGameResponse, err := routes.Apps.GetDBGame(getGameParams, resources)
 
-	if err != nil {
+	if err != nil && err == sql.ErrNoRows {
+		getGameResponse.ErrorMessage = `Game not found`
+	} else if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
-		getGameResponse.ErrorMessage = `Unable to get game`
+		getGameResponse.ErrorMessage = `Unable to get game` + err.Error()
 		writer.Write(getGameResponse.ToJson())
 		return
 	}
@@ -100,11 +103,15 @@ func (routes *Routes) getGameByGUID(writer http.ResponseWriter, request *http.Re
 	var getGameByGUIDParams app.GetGameByGUIDParams
 	json.NewDecoder(request.Body).Decode(&getGameByGUIDParams)
 
+	log.Printf("Received request for %s\n", getGameByGUIDParams)
+
 	getGameResponse, err := routes.Apps.GetGameByGUID(getGameByGUIDParams, resources)
 
-	if err != nil {
+	if err != nil && err == sql.ErrNoRows {
+		getGameResponse.ErrorMessage = `Game not found`
+	} else if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
-		getGameResponse.ErrorMessage = `Unable to get game`
+		getGameResponse.ErrorMessage = `Unable to get game` + err.Error()
 		writer.Write(getGameResponse.ToJson())
 		return
 	}
